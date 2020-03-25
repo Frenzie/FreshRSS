@@ -50,12 +50,13 @@ jobs:
       env:
         - HADOLINT="$HOME/hadolint"
       install:
-        - npm install --save-dev jshint stylelint stylelint-order stylelint-scss stylelint-config-recommended-scss
+        - npm install --save-dev jshint rtlcss stylelint stylelint-order stylelint-scss stylelint-config-recommended-scss
         - curl -sLo "$HADOLINT" $(curl -s https://api.github.com/repos/hadolint/hadolint/releases/latest?access_token="$GITHUB_TOKEN" | jq -r '.assets | .[] | select(.name=="hadolint-Linux-x86_64") | .browser_download_url') && chmod 700 ${HADOLINT}
       script:
         - node_modules/jshint/bin/jshint .
         # check SCSS separately
         - stylelint --syntax scss "**/*.scss"
         - stylelint "**/*.css"
+        - make rtl && [[ $(git status --porcelain | wc -l) -gt 0 ]] && echo "Please run 'make rtl' for" && git status && exit 1
         - bash tests/shellchecks.sh
         - git ls-files --exclude='*Dockerfile*' --ignored | xargs --max-lines=1 "$HADOLINT"
